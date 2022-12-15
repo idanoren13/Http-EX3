@@ -1,5 +1,7 @@
 package server.independent.calculation;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,18 +13,23 @@ import server.exceptions.NotEnoughArgumentsException;
 import server.exceptions.TooManyArgumentsException;
 import server.models.IndependentJSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController
 public class IndependentCalculator {
     @PostMapping(value = "/independent/calculate", consumes = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity calculate(@RequestBody IndependentJSONObject jsonObject) {
+    public ResponseEntity<Object> calculate(@RequestBody IndependentJSONObject jsonObject) {
         int[] arguments = jsonObject.arguments();
         String operation = jsonObject.operation();
         int result = 0;
+        Map<String, Object> resultObject = new HashMap<>();
+
         try {
             switch (operation) {
-                case "PLUS":
+                case "PLUS" -> {
                     if (arguments.length < 2) {
                         throw new NotEnoughArgumentsException("Plus");
                     }
@@ -30,8 +37,8 @@ public class IndependentCalculator {
                         throw new TooManyArgumentsException("Plus");
                     }
                     result = arguments[0] + arguments[1];
-                    break;
-                case "MINUS":
+                }
+                case "MINUS" -> {
                     if (arguments.length < 2) {
                         throw new NotEnoughArgumentsException("Minus");
                     }
@@ -39,8 +46,8 @@ public class IndependentCalculator {
                         throw new TooManyArgumentsException("Minus");
                     }
                     result = arguments[0] - arguments[1];
-                    break;
-                case "TIMES":
+                }
+                case "TIMES" -> {
                     if (arguments.length < 2) {
                         throw new NotEnoughArgumentsException("Times");
                     }
@@ -48,8 +55,8 @@ public class IndependentCalculator {
                         throw new TooManyArgumentsException("Times");
                     }
                     result = arguments[0] * arguments[1];
-                    break;
-                case "DIVIDE":
+                }
+                case "DIVIDE" -> {
                     if (arguments.length < 2) {
                         throw new NotEnoughArgumentsException("Divide");
                     }
@@ -60,8 +67,8 @@ public class IndependentCalculator {
                         throw new DivisionByZeroException();
                     }
                     result = arguments[0] / arguments[1];
-                    break;
-                case "POW":
+                }
+                case "POW" -> {
                     if (arguments.length < 2) {
                         throw new NotEnoughArgumentsException("Pow");
                     }
@@ -69,8 +76,8 @@ public class IndependentCalculator {
                         throw new TooManyArgumentsException("Pow");
                     }
                     result = (int) Math.pow(arguments[0], arguments[1]);
-                    break;
-                case "ABS":
+                }
+                case "ABS" -> {
                     if (arguments.length < 1) {
                         throw new NotEnoughArgumentsException("Abs");
                     }
@@ -80,8 +87,8 @@ public class IndependentCalculator {
                     for (int argument : arguments) {
                         result = Math.abs(argument);
                     }
-                    break;
-                case "FACT":
+                }
+                case "FACT" -> {
                     if (arguments.length < 1) {
                         throw new NotEnoughArgumentsException("Factorial");
                     }
@@ -96,18 +103,25 @@ public class IndependentCalculator {
                     } else {
                         throw new TooManyArgumentsException("Factorial");
                     }
-                    break;
-                default:
-                    return ResponseEntity.status(CONFLICT).body("Error: unknown operation: " + operation);
+                }
+                default -> {
+                    resultObject.put("error-message", "Error: unknown operation: " + operation);
+                    return ResponseEntity.status(CONFLICT).body(resultObject);
+                }
             }
         } catch (TooManyArgumentsException e) {
-            return ResponseEntity.status(CONFLICT).body("Error: Too many arguments for the operation " + e.getMessage());
+            resultObject.put("error-message","Error: Too many arguments for the operation " + e.getMessage());
+            return ResponseEntity.status(CONFLICT).body(resultObject);
         } catch (NotEnoughArgumentsException e) {
-            return ResponseEntity.status(CONFLICT).body("Error: Not enough arguments for the operation " + e.getMessage());
+            resultObject.put("error-message","Error: Not enough arguments for the operation " + e.getMessage());
+            return ResponseEntity.status(CONFLICT).body(resultObject);
         } catch (NegativeFactorialException | DivisionByZeroException e) {
-            return ResponseEntity.status(CONFLICT).body(e.getMessage());
+            resultObject.put("error-message", e.getMessage());
+            return ResponseEntity.status(CONFLICT).body(resultObject);
         }
 
-        return ResponseEntity.ok(result);
+        resultObject.put("result", result);
+
+        return ResponseEntity.ok(resultObject);
     }
 }

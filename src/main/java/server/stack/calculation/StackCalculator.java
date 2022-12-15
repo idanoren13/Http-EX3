@@ -8,6 +8,8 @@ import server.exceptions.NegativeFactorialException;
 import server.exceptions.NotEnoughArgumentsException;
 import server.models.IndependentJSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
@@ -18,7 +20,7 @@ public class StackCalculator {
 
     @GetMapping("/stack/size")
     public ResponseEntity size() {
-        return ResponseEntity.ok(stack.size());
+        return ResponseEntity.ok(Map.of("result", stack.size()));
     }
 
     @PutMapping(value = "/stack/arguments", consumes = {MediaType.APPLICATION_JSON_VALUE})
@@ -29,7 +31,7 @@ public class StackCalculator {
             stack.push(argument);
         }
 
-        return ResponseEntity.ok(stack.size());
+        return ResponseEntity.ok(Map.of("result", stack.size()));
     }
 
     @GetMapping(value = "/stack/operate")
@@ -107,28 +109,28 @@ public class StackCalculator {
 
                     break;
                 default:
-                    return ResponseEntity.status(CONFLICT).body("Error: unknown operation: " + operation);
+                    return ResponseEntity.status(CONFLICT).body(Map.of("error-message","Error: unknown operation: " + operation));
             }
         } catch (NotEnoughArgumentsException e) {
-            return ResponseEntity.status(CONFLICT).body("Error: cannot implement operation " + e.getMessage() + ". It requires "
-                    + e.getNumberOfRequiredArguments() + " arguments and the stack has only " + stack.size() + " arguments\n");
+            return ResponseEntity.status(CONFLICT).body(Map.of("error-message","Error: cannot implement operation " + e.getMessage() + ". It requires "
+                    + e.getNumberOfRequiredArguments() + " arguments and the stack has only " + stack.size() + " arguments"));
         } catch (NegativeFactorialException | DivisionByZeroException e) {
-            return ResponseEntity.status(CONFLICT).body(e.getMessage());
+            return ResponseEntity.status(CONFLICT).body(Map.of("error-message",e.getMessage()));
         }
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(Map.of("result", result));
     }
 
     @DeleteMapping("/stack/arguments")
     public ResponseEntity delete(@RequestParam int count) {
         if (count > stack.size()) {
-            return ResponseEntity.status(CONFLICT).body("Error: cannot remove " + count + " from the stack. It has only " + stack.size() + " arguments\n");
+            return ResponseEntity.status(CONFLICT).body("Error: cannot remove " + count + " from the stack. It has only " + stack.size() + " arguments");
         }
 
         for (int i = 0; i < count; i++) {
             stack.pop();
         }
 
-        return ResponseEntity.ok(stack.size());
+        return ResponseEntity.ok(Map.of("result", stack.size()));
     }
 }

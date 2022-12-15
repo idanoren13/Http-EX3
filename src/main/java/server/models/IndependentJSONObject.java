@@ -9,4 +9,5 @@ public record IndependentJSONObject(int[] arguments, String operation) {
         }
         this.operation = temp;
     }
+
 }
