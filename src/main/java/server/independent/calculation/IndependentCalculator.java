@@ -1,5 +1,7 @@
 package server.independent.calculation;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.http.MediaType;
@@ -7,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import server.Loggers.RequestLoggerWrapper;
 import server.exceptions.DivisionByZeroException;
 import server.exceptions.NegativeFactorialException;
 import server.exceptions.NotEnoughArgumentsException;
@@ -20,8 +23,19 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController
 public class IndependentCalculator {
+    private final RequestLoggerWrapper requestLogger;
+    private static final Logger independentLogger = LogManager.getLogger("independent-logger");
+
+
+    public IndependentCalculator(RequestLoggerWrapper requestLogger) {
+        this.requestLogger = requestLogger;
+    }
+
     @PostMapping(value = "/independent/calculate", consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<Object> calculate(@RequestBody IndependentJSONObject jsonObject) {
+        requestLogger.handleRequest("/independent/calculate", "POST");
+        long timeStart = System.currentTimeMillis();
+
         int[] arguments = jsonObject.arguments();
         String operation = jsonObject.operation();
         int result = 0;
@@ -110,10 +124,10 @@ public class IndependentCalculator {
                 }
             }
         } catch (TooManyArgumentsException e) {
-            resultObject.put("error-message","Error: Too many arguments to perform the operation " + e.getMessage());
+            resultObject.put("error-message", "Error: Too many arguments to perform the operation " + e.getMessage());
             return ResponseEntity.status(CONFLICT).body(resultObject);
         } catch (NotEnoughArgumentsException e) {
-            resultObject.put("error-message","Error: Not enough arguments to perform the operation " + e.getMessage());
+            resultObject.put("error-message", "Error: Not enough arguments to perform the operation " + e.getMessage());
             return ResponseEntity.status(CONFLICT).body(resultObject);
         } catch (NegativeFactorialException | DivisionByZeroException e) {
             resultObject.put("error-message", e.getMessage());
@@ -121,6 +135,10 @@ public class IndependentCalculator {
         }
 
         resultObject.put("result", result);
+
+        if (requestLogger.isDebugEnabled()) {
+            requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
+        }
 
         return ResponseEntity.ok(resultObject);
     }
