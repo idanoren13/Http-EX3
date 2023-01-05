@@ -110,10 +110,10 @@ public class IndependentCalculator {
                 }
             }
         } catch (TooManyArgumentsException e) {
-            resultObject.put("error-message","Error: Too many arguments for the operation " + e.getMessage());
+            resultObject.put("error-message","Error: Too many arguments to perform the operation " + e.getMessage());
             return ResponseEntity.status(CONFLICT).body(resultObject);
         } catch (NotEnoughArgumentsException e) {
-            resultObject.put("error-message","Error: Not enough arguments for the operation " + e.getMessage());
+            resultObject.put("error-message","Error: Not enough arguments to perform the operation " + e.getMessage());
             return ResponseEntity.status(CONFLICT).body(resultObject);
         } catch (NegativeFactorialException | DivisionByZeroException e) {
             resultObject.put("error-message", e.getMessage());
