@@ -1,15 +1,11 @@
 package server.independent.calculation;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import server.Loggers.RequestLoggerWrapper;
+import server.Loggers.LoggersWrapper;
 import server.exceptions.DivisionByZeroException;
 import server.exceptions.NegativeFactorialException;
 import server.exceptions.NotEnoughArgumentsException;
@@ -23,11 +19,9 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController
 public class IndependentCalculator {
-    private final RequestLoggerWrapper requestLogger;
-    private static final Logger independentLogger = LogManager.getLogger("independent-logger");
+    private final LoggersWrapper requestLogger;
 
-
-    public IndependentCalculator(RequestLoggerWrapper requestLogger) {
+    public IndependentCalculator(LoggersWrapper requestLogger) {
         this.requestLogger = requestLogger;
     }
 
@@ -136,9 +130,9 @@ public class IndependentCalculator {
 
         resultObject.put("result", result);
 
-        if (requestLogger.isDebugEnabled()) {
-            requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        }
+
+        requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
+
 
         return ResponseEntity.ok(resultObject);
     }

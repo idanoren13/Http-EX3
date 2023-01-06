@@ -3,7 +3,7 @@ package server.stack.calculation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import server.Loggers.RequestLoggerWrapper;
+import server.Loggers.LoggersWrapper;
 import server.exceptions.DivisionByZeroException;
 import server.exceptions.NegativeFactorialException;
 import server.exceptions.NotEnoughArgumentsException;
@@ -18,26 +18,26 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 public class StackCalculator {
     Stack<Integer> stack = new Stack<>();
 
-    private final RequestLoggerWrapper requestLogger;
+    private final LoggersWrapper logger;
 
-    public StackCalculator(RequestLoggerWrapper requestLogger) {
-        this.requestLogger = requestLogger;
+    public StackCalculator(LoggersWrapper requestLogger) {
+        this.logger = requestLogger;
     }
 
 
     @GetMapping("/stack/size")
     public ResponseEntity size() {
-        requestLogger.handleRequest("/stack/size", "GET");
+        logger.handleRequest("/stack/size", "GET");
         long timeStart = System.currentTimeMillis();
-        if (requestLogger.isDebugEnabled()){
-            requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        }
+
+        logger.handleRequestDuration(System.currentTimeMillis() - timeStart);
+
         return ResponseEntity.ok(Map.of("result", stack.size()));
     }
 
     @PutMapping(value = "/stack/arguments", consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity push(@RequestBody IndependentJSONObject jsonObject) {
-        requestLogger.handleRequest("/stack/arguments", "PUT");
+        logger.handleRequest("/stack/arguments", "PUT");
         long timeStart = System.currentTimeMillis();
         int[] arguments = jsonObject.arguments();
 
@@ -45,16 +45,14 @@ public class StackCalculator {
             stack.push(argument);
         }
 
-        if (requestLogger.isDebugEnabled()){
-            requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        }
+        logger.handleRequestDuration(System.currentTimeMillis() - timeStart);
 
         return ResponseEntity.ok(Map.of("result", stack.size()));
     }
 
     @GetMapping(value = "/stack/operate")
     public ResponseEntity operate(@RequestParam String operation) {
-        requestLogger.handleRequest("/stack/operate", "GET");
+        logger.handleRequest("/stack/operate", "GET");
         long timeStart = System.currentTimeMillis();
         int result = 0;
         int first;
@@ -129,38 +127,34 @@ public class StackCalculator {
 
                     break;
                 default:
-                    return ResponseEntity.status(CONFLICT).body(Map.of("error-message","Error: unknown operation: " + operation));
+                    return ResponseEntity.status(CONFLICT).body(Map.of("error-message", "Error: unknown operation: " + operation));
             }
         } catch (NotEnoughArgumentsException e) {
-            return ResponseEntity.status(CONFLICT).body(Map.of("error-message","Error: cannot implement operation " + e.getMessage() + ". It requires "
+            return ResponseEntity.status(CONFLICT).body(Map.of("error-message", "Error: cannot implement operation " + e.getMessage() + ". It requires "
                     + e.getNumberOfRequiredArguments() + " arguments and the stack has only " + stack.size() + " arguments"));
         } catch (NegativeFactorialException | DivisionByZeroException e) {
-            return ResponseEntity.status(CONFLICT).body(Map.of("error-message",e.getMessage()));
+            return ResponseEntity.status(CONFLICT).body(Map.of("error-message", e.getMessage()));
         }
 
-        if (requestLogger.isDebugEnabled()){
-            requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        }
+        logger.handleRequestDuration(System.currentTimeMillis() - timeStart);
 
         return ResponseEntity.ok(Map.of("result", result));
     }
 
     @DeleteMapping("/stack/arguments")
     public ResponseEntity delete(@RequestParam int count) {
-        requestLogger.handleRequest("/stack/arguments", "DELETE");
+        logger.handleRequest("/stack/arguments", "DELETE");
         long timeStart = System.currentTimeMillis();
 
         if (count > stack.size()) {
-            return ResponseEntity.status(CONFLICT).body(Map.of("error-message","Error: cannot remove " + count + " from the stack. It has only " + stack.size() + " arguments"));
+            return ResponseEntity.status(CONFLICT).body(Map.of("error-message", "Error: cannot remove " + count + " from the stack. It has only " + stack.size() + " arguments"));
         }
 
         for (int i = 0; i < count; i++) {
             stack.pop();
         }
 
-        if (requestLogger.isDebugEnabled()){
-            requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        }
+        logger.handleRequestDuration(System.currentTimeMillis() - timeStart);
 
         return ResponseEntity.ok(Map.of("result", stack.size()));
     }
