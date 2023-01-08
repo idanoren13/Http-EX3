@@ -1,5 +1,6 @@
 package server.independent.calculation;
 
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,7 @@ import server.exceptions.NotEnoughArgumentsException;
 import server.exceptions.TooManyArgumentsException;
 import server.models.IndependentJSONObject;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,9 +22,11 @@ import static org.springframework.http.HttpStatus.CONFLICT;
 @RestController
 public class IndependentCalculator {
     private final LoggersWrapper requestLogger;
+    private final Logger independentLogger;
 
     public IndependentCalculator(LoggersWrapper requestLogger) {
         this.requestLogger = requestLogger;
+        this.independentLogger = requestLogger.getLogger("independent-logger");
     }
 
     @PostMapping(value = "/independent/calculate", consumes = {MediaType.APPLICATION_JSON_VALUE})
@@ -36,7 +40,7 @@ public class IndependentCalculator {
         Map<String, Object> resultObject = new HashMap<>();
 
         try {
-            switch (operation) {
+            switch (operation.toUpperCase()) {
                 case "PLUS" -> {
                     if (arguments.length < 2) {
                         throw new NotEnoughArgumentsException("Plus");
@@ -130,9 +134,9 @@ public class IndependentCalculator {
 
         resultObject.put("result", result);
 
-
         requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-
+        independentLogger.info("Performing operation " + operation + ". Result is " + result);
+        independentLogger.debug("Performing operation: " + operation + "(" + Arrays.toString(arguments).replace("[","").replace("]","") + ") = " + result);
 
         return ResponseEntity.ok(resultObject);
     }

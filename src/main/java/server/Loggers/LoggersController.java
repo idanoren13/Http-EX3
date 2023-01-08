@@ -18,24 +18,38 @@ public class LoggersController {
 
     @GetMapping("logs/level")
     public ResponseEntity getLogLevel(@RequestParam("logger-name") String loggerName) {
+        loggersWrapper.handleRequest("/logs/level", "GET");
+        long timeStart = System.currentTimeMillis();
         Logger logger = loggersWrapper.getLogger(loggerName);
+        ResponseEntity response;
         if (logger == null) {
-            return ResponseEntity.badRequest().body("Logger with name " + loggerName + " not found");
+            response = ResponseEntity.badRequest().body("Logger with name " + loggerName + " not found");
         }
         else {
-            return ResponseEntity.ok(logger.getLevel().toString());
+            response = ResponseEntity.ok(logger.getLevel().toString());
         }
+
+        loggersWrapper.handleRequestDuration(System.currentTimeMillis() - timeStart);
+
+        return response;
     }
 
     @PutMapping("logs/level")
-    public ResponseEntity setLogLevel(@RequestParam("logger-name") String loggerName, @RequestParam("level") String level) {
+    public ResponseEntity setLogLevel(@RequestParam("logger-name") String loggerName, @RequestParam("logger-level") String level) {
+        loggersWrapper.handleRequest("/logs/level", "PUT");
         Logger logger = loggersWrapper.getLogger(loggerName);
+        long timeStart = System.currentTimeMillis();
+        ResponseEntity response;
         if (logger == null || Level.getLevel(level) == null) {
-            return ResponseEntity.badRequest().body("Logger with name " + loggerName + " not found");
+            response = ResponseEntity.badRequest().body("Logger with name " + loggerName + " not found");
         }
         else {
             loggersWrapper.setLoggerLevel(loggerName, level);
-            return ResponseEntity.ok(logger.getLevel().toString());
+            response = ResponseEntity.ok(logger.getLevel().toString());
         }
+
+        loggersWrapper.handleRequestDuration(System.currentTimeMillis() - timeStart);
+
+        return response;
     }
 }

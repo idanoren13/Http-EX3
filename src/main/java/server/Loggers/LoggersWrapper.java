@@ -16,6 +16,10 @@ public class LoggersWrapper {
 
     static int requestCounter = 1;
 
+    public int getRequestCounter() {
+        return requestCounter;
+    }
+
     public Boolean isRequestDebugEnabled() {
         return requestLogger.isDebugEnabled();
     }
@@ -36,6 +40,6 @@ public class LoggersWrapper {
     }
 
     public void setLoggerLevel(String loggerName, String level) {
-        Configurator.setLevel(loggerName,level.toUpperCase());
+        Configurator.setLevel(loggerName, level.toUpperCase());
     }
 }
