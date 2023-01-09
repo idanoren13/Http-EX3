@@ -30,7 +30,7 @@ public class StackCalculator {
     @GetMapping("/stack/size")
     public ResponseEntity size() {
         requestLogger.handleRequest("/stack/size", "GET");
-        stackLogger.info("Stack size is: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
+        stackLogger.info("Stack size is " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
         stackLogger.debug("Stack content (first == top): " +
                 List.of(stack.toArray()).toString() + " | request #" + (requestLogger.getRequestCounter() - 1));
 //                 + " | request #" + (requestLogger.getRequestCounter() - 1));
@@ -44,7 +44,6 @@ public class StackCalculator {
         StringBuilder result = new StringBuilder();
         for (Integer integer : stack) {
             result.insert(0, integer).insert(0, ", ");
-//            result.append(integer).append(",");
         }
 
         if (result.length() > 0) {
@@ -66,7 +65,7 @@ public class StackCalculator {
 
         requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
         stackLogger.info("Adding total of " + arguments.length + " argument(s) to the stack | Stack size: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
-        stackLogger.debug("Adding arguments: " + Arrays.toString(arguments) + " | Stack size before " + (stack.size() - arguments.length) + " | stack size after " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
+        stackLogger.debug("Adding arguments: " + Arrays.toString(arguments).replace("[","").replace("]","").replace(" ","") + " | Stack size before " + (stack.size() - arguments.length) + " | stack size after " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
 
         return ResponseEntity.ok(Map.of("result", stack.size()));
     }
@@ -83,7 +82,7 @@ public class StackCalculator {
             switch (operation.toUpperCase()) {
                 case "PLUS":
                     if (stack.size() < 2) {
-                        throw new NotEnoughArgumentsException("Plus", 2);
+                        throw new NotEnoughArgumentsException(operation, 2);
                     }
                     first = stack.pop();
                     second = stack.pop();
@@ -91,7 +90,7 @@ public class StackCalculator {
                     break;
                 case "MINUS":
                     if (stack.size() < 2) {
-                        throw new NotEnoughArgumentsException("Minus", 2);
+                        throw new NotEnoughArgumentsException(operation, 2);
                     }
                     first = stack.pop();
                     second = stack.pop();
@@ -99,7 +98,7 @@ public class StackCalculator {
                     break;
                 case "TIMES":
                     if (stack.size() < 2) {
-                        throw new NotEnoughArgumentsException("Times", 2);
+                        throw new NotEnoughArgumentsException(operation, 2);
                     }
                     first = stack.pop();
                     second = stack.pop();
@@ -107,7 +106,7 @@ public class StackCalculator {
                     break;
                 case "DIVIDE":
                     if (stack.size() < 2) {
-                        throw new NotEnoughArgumentsException("Divide", 2);
+                        throw new NotEnoughArgumentsException(operation, 2);
                     }
 
                     first = stack.pop();
@@ -120,7 +119,7 @@ public class StackCalculator {
                     break;
                 case "POW":
                     if (stack.size() < 2) {
-                        throw new NotEnoughArgumentsException("Pow", 2);
+                        throw new NotEnoughArgumentsException(operation, 2);
                     }
                     first = stack.pop();
                     second = stack.pop();
@@ -128,13 +127,14 @@ public class StackCalculator {
                     break;
                 case "ABS":
                     if (stack.size() < 1) {
-                        throw new NotEnoughArgumentsException("Abs", 1);
+                        throw new NotEnoughArgumentsException(operation, 1);
                     }
-                    result = Math.abs(stack.pop());
+                    first = stack.pop();
+                    result = Math.abs(first);
                     break;
                 case "FACT":
                     if (stack.size() < 1) {
-                        throw new NotEnoughArgumentsException("Factorial", 1);
+                        throw new NotEnoughArgumentsException(operation, 1);
                     }
                     first = stack.pop();
                     if (first < 0) {
@@ -162,7 +162,7 @@ public class StackCalculator {
 
         requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
         stackLogger.info("Performing operation " + operation + "." + " Result is " + result + " | stack size: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
-        stackLogger.debug("“Performing operation: " + operation + "(" + getUsedArguments(first, second) + ") = " + result + " | request #" + (requestLogger.getRequestCounter() - 1));
+        stackLogger.debug("Performing operation: " + operation + "(" + getUsedArguments(first, second) + ") = " + result + " | request #" + (requestLogger.getRequestCounter() - 1));
 
         return ResponseEntity.ok(Map.of("result", result));
     }
@@ -187,7 +187,7 @@ public class StackCalculator {
         }
 
         requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        stackLogger.info("Removing total " + count + "argument(s) from the stack | Stack size: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
+        stackLogger.info("Removing total " + count + " argument(s) from the stack | Stack size: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
         return ResponseEntity.ok(Map.of("result", stack.size()));
     }
 }

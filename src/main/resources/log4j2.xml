@@ -6,23 +6,23 @@
 
         <File name="INDEPENDENT" fileName="logs/independent.log" append="false">
             <PatternLayout>
-                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p: %msg%n</Pattern>
+                <Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %p: %msg%n</Pattern>
             </PatternLayout>
         </File>
 
         <File name="STACK" fileName="logs/stack.log" append="false">
             <PatternLayout>
-                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p: %msg%n</Pattern>
+                <Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %p: %msg%n</Pattern>
             </PatternLayout>
         </File>
 
         <File name="REQUESTS" fileName="logs/requests.log" append="false">
             <PatternLayout>
-                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p: %msg%n</Pattern>
+                <Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %p: %msg%n</Pattern>
             </PatternLayout>
         </File>
         <Console name="Console" target="SYSTEM_OUT">
-            <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p: %msg%n</Pattern>
+            <Pattern>%d{dd-MM-yyyy HH:mm:ss.SSS} %p: %msg%n</Pattern>
         </Console>
 
         <Async name="Async">
