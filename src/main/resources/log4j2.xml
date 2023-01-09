@@ -4,25 +4,25 @@
     <Appenders>
 
 
-        <File name="creatorAppender" fileName="logs/creator.log" append="false">
+        <File name="INDEPENDENT" fileName="logs/independent.log" append="false">
             <PatternLayout>
-                <Pattern>%d{HH:mm:ss.SSS} [%t] %-5p %logger - %msg%n</Pattern>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p: %msg%n</Pattern>
             </PatternLayout>
         </File>
 
-        <File name="sorterAppender" fileName="logs/sorter.log" append="false">
+        <File name="STACK" fileName="logs/stack.log" append="false">
             <PatternLayout>
-                <Pattern>%d{HH:mm:ss.SSS} [%t] %-5p %logger - %msg%n</Pattern>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p: %msg%n</Pattern>
             </PatternLayout>
         </File>
 
-        <File name="allLogsFile" fileName="logs/all.log" append="false">
+        <File name="REQUESTS" fileName="logs/requests.log" append="false">
             <PatternLayout>
-                <Pattern>%d{HH:mm:ss.SSS} [%t] %-5p %logger - %msg%n</Pattern>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p: %msg%n</Pattern>
             </PatternLayout>
         </File>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS}  %-5level: %msg%n"/>
+            <Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %p: %msg%n</Pattern>
         </Console>
 
         <Async name="Async">
@@ -32,19 +32,18 @@
 
     <Loggers>
 
-        <logger name="industry.skills.logs.example.advance" level="TRACE" additivity="false">
-            <!--<AppenderRef ref="Console"/>-->
-            <AppenderRef ref="Async"/>
+        <logger name="request-logger" level="INFO">
+            <appender-ref ref="REQUESTS" />
+            <appender-ref ref="STDOUT" />
         </logger>
 
-        <logger name="industry.skills.logs.example.advance.MainSorter" level="INFO" additivity="false">
-            <AppenderRef ref="Console"/>
+        <logger name="stack-logger" level="INFO" additivity="false">
+            <appender-ref ref="STACK" />
         </logger>
 
-        <Root level="INFO">
-            <AppenderRef ref="Console"/>
-        </Root>
-
+        <logger name="independent-logger" level="DEBUG">
+            <appender-ref ref="INDEPENDENT"/>
+        </logger>
     </Loggers>
 
 </Configuration>

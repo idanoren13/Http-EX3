@@ -135,8 +135,10 @@ public class IndependentCalculator {
         resultObject.put("result", result);
 
         requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        independentLogger.info("Performing operation " + operation + ". Result is " + result);
-        independentLogger.debug("Performing operation: " + operation + "(" + Arrays.toString(arguments).replace("[","").replace("]","") + ") = " + result);
+        independentLogger.info("Performing operation " + operation + ". Result is " + result + " | request #" + (requestLogger.getRequestCounter() - 1));
+        independentLogger.debug("Performing operation: " + operation + "(" +
+                Arrays.toString(arguments).replace("[", "").replace("]", "").replace(" ","")
+                + ") = " + result+ " | request #" + (requestLogger.getRequestCounter() - 1));
 
         return ResponseEntity.ok(resultObject);
     }

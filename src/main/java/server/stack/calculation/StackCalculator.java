@@ -10,31 +10,32 @@ import server.exceptions.NegativeFactorialException;
 import server.exceptions.NotEnoughArgumentsException;
 import server.models.IndependentJSONObject;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
+import java.util.stream.Stream;
 
 import static org.springframework.http.HttpStatus.CONFLICT;
 
 @RestController
 public class StackCalculator {
-    Stack<Integer> stack = new Stack<>();
-    private final LoggersWrapper logger;
+    Deque<Integer> stack = new ArrayDeque<>();
+    private final LoggersWrapper requestLogger;
     private final Logger stackLogger;
 
     public StackCalculator(LoggersWrapper requestLogger) {
-        this.logger = requestLogger;
+        this.requestLogger = requestLogger;
         this.stackLogger = requestLogger.getLogger("stack-logger");
     }
 
 
     @GetMapping("/stack/size")
     public ResponseEntity size() {
-        logger.handleRequest("/stack/size", "GET");
-        stackLogger.info("Stack size is: " + stack.size());
-        stackLogger.debug("Stack content (first == top): [" + getStackArguments() + "]");
+        requestLogger.handleRequest("/stack/size", "GET");
+        stackLogger.info("Stack size is: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
+        stackLogger.debug("Stack content (first == top): " +
+                List.of(stack.toArray()).toString() + " | request #" + (requestLogger.getRequestCounter() - 1));
+//                 + " | request #" + (requestLogger.getRequestCounter() - 1));
         long timeStart = System.currentTimeMillis();
-        logger.handleRequestDuration(System.currentTimeMillis() - timeStart);
+        requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
 
         return ResponseEntity.ok(Map.of("result", stack.size()));
     }
@@ -42,7 +43,8 @@ public class StackCalculator {
     private String getStackArguments() {
         StringBuilder result = new StringBuilder();
         for (Integer integer : stack) {
-            result.append(integer).append(",");
+            result.insert(0, integer).insert(0, ", ");
+//            result.append(integer).append(",");
         }
 
         if (result.length() > 0) {
@@ -54,7 +56,7 @@ public class StackCalculator {
 
     @PutMapping(value = "/stack/arguments", consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity push(@RequestBody IndependentJSONObject jsonObject) {
-        logger.handleRequest("/stack/arguments", "PUT");
+        requestLogger.handleRequest("/stack/arguments", "PUT");
         long timeStart = System.currentTimeMillis();
         int[] arguments = jsonObject.arguments();
 
@@ -62,16 +64,16 @@ public class StackCalculator {
             stack.push(argument);
         }
 
-        logger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        stackLogger.info("Adding total of " + arguments.length + " argument(s) to the stack | Stack size: " + stack.size());
-        stackLogger.debug("Adding arguments: " +  Arrays.toString(arguments) + " | Stack size before " + (stack.size() - arguments.length) + " | stack size after " + stack.size());
+        requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
+        stackLogger.info("Adding total of " + arguments.length + " argument(s) to the stack | Stack size: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
+        stackLogger.debug("Adding arguments: " + Arrays.toString(arguments) + " | Stack size before " + (stack.size() - arguments.length) + " | stack size after " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
 
         return ResponseEntity.ok(Map.of("result", stack.size()));
     }
 
     @GetMapping(value = "/stack/operate")
     public ResponseEntity operate(@RequestParam String operation) {
-        logger.handleRequest("/stack/operate", "GET");
+        requestLogger.handleRequest("/stack/operate", "GET");
         long timeStart = System.currentTimeMillis();
         Integer result = 0;
         Integer first = null;
@@ -151,16 +153,16 @@ public class StackCalculator {
         } catch (NotEnoughArgumentsException e) {
             String errorMessage = "Error: cannot implement operation " + e.getMessage() + ". It requires "
                     + e.getNumberOfRequiredArguments() + " arguments and the stack has only " + stack.size() + " arguments";
-            stackLogger.error("Server encountered an error ! message: " + errorMessage);
+            stackLogger.error("Server encountered an error ! message: " + errorMessage + " | request #" + (requestLogger.getRequestCounter() - 1));
             return ResponseEntity.status(CONFLICT).body(Map.of("error-message", errorMessage));
         } catch (NegativeFactorialException | DivisionByZeroException e) {
-            stackLogger.error("Server encountered an error ! message: " + e.getMessage());
+            stackLogger.error("Server encountered an error ! message: " + e.getMessage() + " | request #" + (requestLogger.getRequestCounter() - 1));
             return ResponseEntity.status(CONFLICT).body(Map.of("error-message", e.getMessage()));
         }
 
-        logger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        stackLogger.info("Performing operation " + operation + "." + " Result is " + result + " | stack size: " + stack.size());
-        stackLogger.debug("“Performing operation: " + operation + "(" + getUsedArguments(first, second) + ") = " + result);
+        requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
+        stackLogger.info("Performing operation " + operation + "." + " Result is " + result + " | stack size: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
+        stackLogger.debug("“Performing operation: " + operation + "(" + getUsedArguments(first, second) + ") = " + result + " | request #" + (requestLogger.getRequestCounter() - 1));
 
         return ResponseEntity.ok(Map.of("result", result));
     }
@@ -171,12 +173,12 @@ public class StackCalculator {
 
     @DeleteMapping("/stack/arguments")
     public ResponseEntity delete(@RequestParam int count) {
-        logger.handleRequest("/stack/arguments", "DELETE");
+        requestLogger.handleRequest("/stack/arguments", "DELETE");
         long timeStart = System.currentTimeMillis();
 
         if (count > stack.size()) {
             String errorMessage = "Error: cannot remove " + count + " from the stack. It has only " + stack.size() + " arguments";
-            stackLogger.error("Server encountered an error ! message: " + errorMessage);
+            stackLogger.error("Server encountered an error ! message: " + errorMessage + " | request #" + (requestLogger.getRequestCounter() - 1));
             return ResponseEntity.status(CONFLICT).body(Map.of("error-message", "error-message"));
         }
 
@@ -184,8 +186,8 @@ public class StackCalculator {
             stack.pop();
         }
 
-        logger.handleRequestDuration(System.currentTimeMillis() - timeStart);
-        stackLogger.info("Removing total "+ count +"argument(s) from the stack | Stack size: "+stack.size());
+        requestLogger.handleRequestDuration(System.currentTimeMillis() - timeStart);
+        stackLogger.info("Removing total " + count + "argument(s) from the stack | Stack size: " + stack.size() + " | request #" + (requestLogger.getRequestCounter() - 1));
         return ResponseEntity.ok(Map.of("result", stack.size()));
     }
 }
