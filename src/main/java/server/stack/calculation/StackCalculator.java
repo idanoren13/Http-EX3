@@ -145,7 +145,6 @@ public class StackCalculator {
                     for (int i = 1; i <= first; i++) {
                         result *= i;
                     }
-
                     break;
                 default:
                     return ResponseEntity.status(CONFLICT).body(Map.of("error-message", "Error: unknown operation: " + operation));
